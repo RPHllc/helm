@@ -1,0 +1,70 @@
+name: Publish Helm charts (docs on main)
+
+on:
+  workflow_dispatch: {}
+  # optional: auto-publish on a cadence
+  schedule:
+    - cron: '0 */6 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: glance
+            repo: vpontual/glance # <-- your fork with helm/ inside
+            path: helm # <-- where Chart.yaml lives in that repo
+            subdir: glance # <-- will publish to docs/glance
+            url: https://rphllc.github.io/helm/glance
+
+          # Add more charts later:
+          # - name: otherapp
+          #   repo: vpontual/otherapp
+          #   path: helm
+          #   subdir: otherapp
+          #   url: https://vpontual.github.io/helm/otherapp
+
+    steps:
+      - name: Checkout publisher repo (RPHllc/helm)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout source chart (vpontual/glance)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repo }}
+          path: source
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+
+      - name: Lint & package ${{ matrix.name }}
+        run: |
+          set -euo pipefail
+          mkdir -p docs/${{ matrix.subdir }}
+          helm lint source/${{ matrix.path }}
+          helm dependency update source/${{ matrix.path }} || true
+          helm package source/${{ matrix.path }} -d docs/${{ matrix.subdir }}
+          touch docs/.nojekyll
+          if [ -f docs/${{ matrix.subdir }}/index.yaml ]; then
+            helm repo index docs/${{ matrix.subdir }} \
+              --url ${{ matrix.url }} \
+              --merge docs/${{ matrix.subdir }}/index.yaml
+          else
+            helm repo index docs/${{ matrix.subdir }} \
+              --url ${{ matrix.url }}
+          fi
+
+      - name: Commit docs to main
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Publish ${{ matrix.name }} Helm chart'
+          branch: main
+          file_pattern: docs/**

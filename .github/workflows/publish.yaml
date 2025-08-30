@@ -68,3 +68,4 @@ jobs:
           commit_message: 'Publish ${{ matrix.name }} Helm chart'
           branch: main
           file_pattern: docs/**
+          push_options: '--force-with-lease'

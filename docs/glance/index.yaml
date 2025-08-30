@@ -3,9 +3,9 @@ entries:
   glance:
   - apiVersion: v2
     appVersion: v0.8.4
-    created: "2025-08-30T01:08:39.290245662Z"
+    created: "2025-08-30T06:01:56.708500727Z"
     description: A Helm chart for Kubernetes
-    digest: d0669443c69c10358b057bf9b5fa3b7f44ecb5b3cf52b8b9f79c57bf21cd9964
+    digest: 0b50943cc5b16a9eace5bfccb5e78aee23f5426c368b65fd9835bd8ce9b7258d
     name: glance
     type: application
     urls:
@@ -13,7 +13,7 @@ entries:
     version: 0.1.6
   - apiVersion: v2
     appVersion: v0.7.9
-    created: "2025-08-30T01:08:39.289930819Z"
+    created: "2025-08-30T06:01:56.70801779Z"
     description: A Helm chart for Kubernetes
     digest: 60b25b19e0c89a6398c0e07d431b6f502a83efe2a465706eb9acd3722d997ad5
     name: glance
@@ -21,4 +21,4 @@ entries:
     urls:
     - https://rphllc.github.io/helm/glance/glance-0.1.5.tgz
     version: 0.1.5
-generated: "2025-08-30T01:08:39.289515427Z"
+generated: "2025-08-30T06:01:56.707564979Z"

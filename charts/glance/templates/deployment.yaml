@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "glance.fullname" . }}
+  labels:
+    app: {{ include "glance.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "glance.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "glance.fullname" . }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: {{ .Values.service.ports.http.name }}
+              containerPort: {{ .Values.service.ports.http.containerPort }}
+          args:
+            - '--config'
+            - '/mnt/glance.yaml'
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- if .Values.config.enabled }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /mnt
+{{- end }}
+{{- if .Values.config.enabled }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "glance.fullname" . }}-config
+{{- end }}

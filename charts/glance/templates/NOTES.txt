@@ -1,0 +1,8 @@
+1. Application is available at:
+   http://{{ .Values.ingress.host }}
+
+2. To get the service:
+   kubectl get svc {{ .Release.Name }}-service
+
+3. To upgrade this release:
+   helm upgrade {{ .Release.Name }} helm/ -f ./helm/values.yaml -f ./helm/my-values.yaml -n glance

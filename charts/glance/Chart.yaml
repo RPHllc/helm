@@ -1,0 +1,13 @@
+apiVersion: v2
+name: glance
+description: A Helm chart for Kubernetes
+type: application
+# Chart versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.1.7
+
+# Versions are not expected to follow Semantic Versioning.
+# They should reflect the version the application is using.
+# It is recommended to use it with quotes.
+appVersion: 'v0.8.4'
+sources:
+  - https://github.com/glanceapp/glance

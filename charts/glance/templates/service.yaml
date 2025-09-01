@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "glance.fullname" . }}
+  labels:
+    app: {{ include "glance.fullname" . }}
+spec:
+  ports:
+    - port: {{ .Values.service.ports.http.port }}
+      targetPort: {{ .Values.service.ports.http.containerPort }}
+      name: {{ .Values.service.ports.http.name }}
+  selector:
+    app: {{ include "glance.fullname" . }}
+  type: {{ .Values.service.type }}

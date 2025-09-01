@@ -1,4 +1,18 @@
-remote: origin
-target-branch: main
+# Which directories contain charts
 chart-dirs:
-  - glance
+  - charts
+
+# Which branch to diff against to detect changed charts
+target-branch: main
+
+# Ensure chart version is bumped when chart files change
+check-version-increment: true
+
+# If you don’t want to maintain a maintainers list in Chart.yaml, set this false
+validate-maintainers: false
+
+# Extra flags passed to `helm install`
+helm-extra-args: --timeout 5m --atomic
+
+# If your chart had dependencies in charts/glance/Chart.yaml, list repos here
+chart-repos: []

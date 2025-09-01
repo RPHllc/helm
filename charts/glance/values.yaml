@@ -1,27 +1,79 @@
+# -- Worload
 replicaCount: 1
 
 image:
-  repository: glanceapp/glance
+  repository: docker.io/glanceapp/glance
   pullPolicy: IfNotPresent
-  tag: v0.8.4
+  tag: ''   # leave empty to use .Chart.AppVersion.
 
+imagePullSecrets: []          # e.g., [{ name: regcred }]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""                    # empty => use fullname
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}        # e.g., { fsGroup: 2000 }
+securityContext: {}           # e.g.,
+#  capabilities:
+#    drop: ["ALL"]
+#  readOnlyRootFilesystem: true
+#  runAsNonRoot: true
+#  runAsUser: 1000
+
+# -- Networking
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: traefik          # or leave empty to omit
+  annotations: {}             # e.g., traefik.ingress.kubernetes.io/router.entrypoints: websecure
+  tls:                        # optional
+    - hosts: ["glance.casarp.us"]
+      secretName: glance-tls
+  hosts:
+    - host: glance.casarp.us
+      paths:
+        - path: /
+          pathType: Prefix
+
+# -- Probes (Deployment uses `with`: omit to disable)
+livenessProbe: {}
+#  httpGet:
+#    path: /api/healthz
+#    port: http
+readinessProbe: {}
+#  httpGet:
+#    path: /api/healthz
+#    port: http
+
+# -- Resources
 resources:
   requests:
     cpu: 100m
     memory: 128Mi
   limits:
-    memory: 256Mi
+    cpu: 200m
+    memory: 128Mi
 
-service:
-  type: ClusterIP
-  ports:
-    http:
-      name: http
-      port: 80
-      containerPort: 8080
+# -- Extra volumes/mounts and scheduling knobs
+volumes: []
+volumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
 
+# -- Application configuration injected via ConfigMap
 config:
-  enabled: true
   data: |
     pages:
       - name: Home
@@ -113,13 +165,3 @@ config:
                   - go-gitea/gitea
                   - immich-app/immich
                   - syncthing/syncthing
-
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-ingress:
-  enabled: true
-  annotations:
-    kubernetes.io/ingress.class: 'traefik'
-  host: glance.home
-  # pathType: Prefix | Exact | ImplementationSpecific
-  pathType: Prefix
-  path: /

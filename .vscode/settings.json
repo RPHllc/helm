@@ -1,0 +1,14 @@
+{
+  // other Prettier settings
+  "overrides": [
+    {
+      "files": ["*.yaml", "*.yml"],
+      "options": {
+        "bracketSpacing": false
+      }
+    }
+  ],
+  "[yaml]": {
+    "prettier.bracketSpacing": false
+  }
+}

@@ -3,12 +3,17 @@ kind: Service
 metadata:
   name: {{ include "glance.fullname" . }}
   labels:
-    app: {{ include "glance.fullname" . }}
+    {{- include "glance.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
+  type: {{ .Values.service.type | default "ClusterIP" }}
   ports:
-    - port: {{ .Values.service.ports.http.port }}
-      targetPort: {{ .Values.service.ports.http.containerPort }}
-      name: {{ .Values.service.ports.http.name }}
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
   selector:
-    app: {{ include "glance.fullname" . }}
-  type: {{ .Values.service.type }}
+    {{- include "glance.selectorLabels" . | nindent 4 }}

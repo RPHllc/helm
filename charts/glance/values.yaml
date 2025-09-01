@@ -38,10 +38,10 @@ ingress:
   className: traefik          # or leave empty to omit
   annotations: {}             # e.g., traefik.ingress.kubernetes.io/router.entrypoints: websecure
   tls:                        # optional
-    - hosts: ["glance.casarp.us"]
+    - hosts: ["my.example.com"]
       secretName: glance-tls
   hosts:
-    - host: glance.casarp.us
+    - host: my.example.com
       paths:
         - path: /
           pathType: Prefix

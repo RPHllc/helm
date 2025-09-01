@@ -39,7 +39,18 @@ jobs:
           echo "app=${APPV}"   >> $GITHUB_OUTPUT
           echo "chart=${CHARTV}" >> $GITHUB_OUTPUT
 
+      - name: Skip if version already in index
+        id: skip
+        run: |
+          VERSION="$(yq -r '.version' charts/glance/Chart.yaml)"
+          if [ -f docs/glance/index.yaml ] && grep -q "version: ${VERSION}" docs/glance/index.yaml; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Package chart
+        if: steps.skip.outputs.exists == 'false'
         run: |
           mkdir -p docs/glance
           helm dependency update charts/glance || true
@@ -58,7 +69,7 @@ jobs:
       - name: Commit docs to main
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Publish glance Helm chart ${ { steps.v.outputs.chart } }"
+          commit_message: "Publish glance Helm chart ${{ steps.v.outputs.chart }}"
           branch: main
           file_pattern: docs/**
           push_options: '--force-with-lease'

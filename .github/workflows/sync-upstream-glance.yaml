@@ -1,0 +1,89 @@
+name: Sync appVersion with upstream releases
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 0 * * *"   # hourly; adjust as needed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install yq and gh
+        uses: mikefarah/yq@v4.44.3
+
+      - name: Read current appVersion and chart version
+        id: cur
+        run: |
+          CHART="charts/glance/Chart.yaml"
+          CUR_APPV="$(yq -r '.appVersion' "${CHART}")"
+          CUR_CHART="$(yq -r '.version' "${CHART}")"
+          echo "app=${CUR_APPV}"   >> $GITHUB_OUTPUT
+          echo "chart=${CUR_CHART}" >> $GITHUB_OUTPUT
+
+      - name: Get latest upstream release tag (raw, unmodified)
+        id: up
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # raw upstream tag, e.g. v1.2.3 or v.1.2.3 or v1.2.3-rc.1
+          RAW_TAG="$(gh api repos/glanceapp/glance/releases/latest --jq .tag_name)"
+          echo "tag=${RAW_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Check if update needed
+        id: need
+        run: |
+          if [ "${{ steps.up.outputs.tag }}" = "${{ steps.cur.outputs.app }}" ]; then
+            echo "update=no" >> $GITHUB_OUTPUT
+          else
+            echo "update=yes" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Chart.yaml (set appVersion to raw upstream tag, bump patch)
+        if: steps.need.outputs.update == 'yes'
+        id: bump
+        run: |
+          set -euo pipefail
+          CHART="charts/glance/Chart.yaml"
+          NEW_APP="${{ steps.up.outputs.tag }}"
+          CUR_CHART="${{ steps.cur.outputs.chart }}"
+
+          # ensure CUR_CHART looks like X.Y.Z
+          if ! echo "$CUR_CHART" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Chart version ($CUR_CHART) is not clean SemVer X.Y.Z" >&2
+            exit 1
+          fi
+
+          MAJOR=$(echo "$CUR_CHART" | cut -d. -f1)
+          MINOR=$(echo "$CUR_CHART" | cut -d. -f2)
+          PATCH=$(echo "$CUR_CHART" | cut -d. -f3)
+          NEW_PATCH=$((PATCH+1))
+          NEW_CHART="${MAJOR}.${MINOR}.${NEW_PATCH}"
+
+          yq -i ".appVersion = \"${NEW_APP}\"" "$CHART"
+          yq -i ".version    = \"${NEW_CHART}\"" "$CHART"
+
+          echo "new_chart=${NEW_CHART}" >> $GITHUB_OUTPUT
+          echo "new_app=${NEW_APP}"     >> $GITHUB_OUTPUT
+
+      - name: Create PR
+        if: steps.need.outputs.update == 'yes'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(glance): set appVersion=${{ steps.bump.outputs.new_app }}; bump chart to ${{ steps.bump.outputs.new_chart }}"
+          title: "chore(glance): appVersion=${{ steps.bump.outputs.new_app }}; chart=${{ steps.bump.outputs.new_chart }}"
+          body: |
+            - `appVersion`: **${{ steps.bump.outputs.new_app }}** (exact upstream tag)
+            - `version`: **${{ steps.bump.outputs.new_chart }}** (chart patch bump)
+          branch: chore/bump-app-${{ steps.bump.outputs.new_app }}
+          add-paths: |
+            charts/glance/Chart.yaml

@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: write      # for committing docs/*
-  packages: write      # for pushing OCI chart to ghcr.io
+  # packages: write      # for pushing OCI chart to ghcr.io
 
 jobs:
   publish:
@@ -64,18 +64,18 @@ jobs:
           push_options: '--force-with-lease'
 
       # --- Optional: also publish to GHCR as an OCI chart
-      - name: Login to ghcr.io
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
+      # - name: Login to ghcr.io
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ github.token }}
 
-      - name: Push OCI chart to GHCR
-        run: |
-          set -euo pipefail
-          VERSION="${{ steps.v.outputs.chart }}"
-          FILE="glance-${VERSION}.tgz"
-          cd docs/glance
-          # push under ghcr.io/RPHllc/helm/chart
-          helm push "${FILE}" "oci://ghcr.io/${{ github.repository }}/chart"
+      # - name: Push OCI chart to GHCR
+      #   run: |
+      #     set -euo pipefail
+      #     VERSION="${{ steps.v.outputs.chart }}"
+      #     FILE="glance-${VERSION}.tgz"
+      #     cd docs/glance
+      #     # push under ghcr.io/RPHllc/helm/chart
+      #     helm push "${FILE}" "oci://ghcr.io/${{ github.repository }}/chart"

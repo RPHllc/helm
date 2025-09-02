@@ -4,5 +4,5 @@ metadata:
   name: {{ include "glance.fullname" . }}
   labels: {{ include "glance.labels" . | nindent 4 }}
 data:
-  glance.yaml: |-
+  glance.yml: |-
     {{- .Values.config.data | nindent 4 }}

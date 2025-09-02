@@ -57,8 +57,8 @@ spec:
           {{- end }}
           volumeMounts:
             - name: config
-              mountPath: /app/config/glance.yaml
-              subPath: glance.yaml
+              mountPath: /app/config/glance.yml
+              subPath: glance.yml
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}

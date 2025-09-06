@@ -74,7 +74,10 @@ affinity: {}
 
 # -- Application configuration injected via ConfigMap
 config:
+  mainFilename: glance.yml
   data: |
+    server:
+      assets-path: /app/assets
     pages:
       - name: Home
         # Optionally, if you only have a single page you can hide the desktop navigation for a cleaner look
@@ -165,3 +168,7 @@ config:
                   - go-gitea/gitea
                   - immich-app/immich
                   - syncthing/syncthing
+    files: {}
+    tplFiles: {}
+
+assets: {}

@@ -56,9 +56,15 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
 
+          # Safely compute the containerPort from values (supports both new and legacy schemas)
+          {{- $svc := (default (dict) .Values.service) -}}
+          {{- $ports := (get $svc "ports") | default (dict) -}}
+          {{- $http := (get $ports "http") | default (dict) -}}
+          {{- $containerPort := (get $http "containerPort") | default (get $svc "port" | default 8080) -}}
+
           ports:
             - name: http
-              containerPort: {{ (dig "service" "ports" "http" "containerPort" .Values | default (dig "service" "port" .Values | default 8080)) }}
+              containerPort: {{ $containerPort }}
               protocol: TCP
 
           {{- with .Values.livenessProbe }}

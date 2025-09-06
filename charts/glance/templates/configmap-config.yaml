@@ -12,4 +12,3 @@ data:
   {{ $name }}: |
 {{ tpl $content $ | indent 4 }}
   {{- end }}
-{{- end }}

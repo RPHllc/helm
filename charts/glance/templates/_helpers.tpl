@@ -60,3 +60,12 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+A default fallback if users wipe config.data
+*/}}
+{{- define "glance.defaultConfig" -}}
+server:
+  assets-path: /app/assets
+pages: []
+{{- end -}}

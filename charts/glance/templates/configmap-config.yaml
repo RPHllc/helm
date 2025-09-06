@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "glance.fullname" . }}-etc
+  labels: 
+    {{- include "glance.labels" . | nindent 4 }}
+data:
+  {{- $main := (default "glance.yml" .Values.config.mainFilename) }}
+  {{ $main }}: |
+{{ tpl .Values.config.data . | indent 4 }}
+  {{- range $name, $content := .Values.config.files }}
+  {{ $name }}: |
+{{ tpl $content $ | indent 4 }}
+  {{- end }}
+{{- end }}

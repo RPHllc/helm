@@ -12,7 +12,6 @@ spec:
   template:
     metadata:
       annotations:
-        # Roll when configs/assets change
         checksum/config: {{ include (print $.Template.BasePath "/configmap-config.yaml") . | sha256sum }}
         checksum/assets: {{ include (print $.Template.BasePath "/configmap-assets.yaml") . | sha256sum }}
       {{- with .Values.podAnnotations }}
@@ -33,7 +32,6 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-
       volumes:
         - name: glance-etc
           configMap:
@@ -46,7 +44,6 @@ spec:
         {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-
       containers:
         - name: {{ .Chart.Name }}
           {{- with .Values.securityContext }}
@@ -55,18 +52,10 @@ spec:
           {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-
-          # Safely compute the containerPort from values (supports both new and legacy schemas)
-          {{- $svc := (default (dict) .Values.service) -}}
-          {{- $ports := (get $svc "ports") | default (dict) -}}
-          {{- $http := (get $ports "http") | default (dict) -}}
-          {{- $containerPort := (get $http "containerPort") | default (get $svc "port" | default 8080) -}}
-
           ports:
             - name: http
-              containerPort: {{ $containerPort }}
+              containerPort: {{ include "glance.httpContainerPort" . }}
               protocol: TCP
-
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
@@ -79,9 +68,7 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-
           volumeMounts:
-            # Mount the whole config directory (glance.yml + included files)
             - name: glance-etc
               mountPath: /app/config
             {{- if .Values.assets }}
@@ -91,10 +78,8 @@ spec:
             {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-
-          # Uncomment only if the image requires an explicit config path
+          # If the image requires an explicit config path, uncomment:
           # args: ["--config", "/app/config/glance.yml"]
-
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

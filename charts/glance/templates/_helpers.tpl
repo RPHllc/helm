@@ -69,3 +69,30 @@ server:
   assets-path: /app/assets
 pages: []
 {{- end -}}
+
+{{/* 
+Return the HTTP container port for the Glance container.
+
+Priority order:
+  1) .Values.service.ports.http.containerPort   (new schema)
+  2) .Values.service.port                       (legacy schema)
+  3) 8080                                       (hard default)
+
+Rationale:
+- Avoids using `dig` on .Values (which is a chartutil.Values), so no type issues.
+- Emits a bare number, safe to insert into YAML (e.g., containerPort: {{ include "glance.httpContainerPort" . }}).
+
+Usage:
+  In templates/deployment.yaml:
+    ports:
+      - name: http
+        containerPort: {{ include "glance.httpContainerPort" . }}
+        protocol: TCP
+*/}}
+{{- define "glance.httpContainerPort" -}}
+{{- $svc := (default (dict) .Values.service) -}}
+{{- $ports := (get $svc "ports") | default (dict) -}}
+{{- $http := (get $ports "http") | default (dict) -}}
+{{- $containerPort := (get $http "containerPort") | default (get $svc "port" | default 8080) -}}
+{{- $containerPort -}}
+{{- end -}}

@@ -6,9 +6,18 @@ metadata:
     {{- include "glance.labels" . | nindent 4 }}
 data:
   {{- $main := (default "glance.yml" .Values.config.mainFilename) }}
+  {{- $data := (default (include "glance.defaultConfig" .) .Values.config.data) }}
   {{ $main }}: |
-{{ tpl .Values.config.data . | indent 4 }}
-  {{- range $name, $content := .Values.config.files }}
+{{ tpl $data . | indent 4 }}
+
+  # Extra config files that should be mounted literally (no Helm templating)
+  {{- range $name, $content := (default (dict) .Values.config.files) }}
+  {{ $name }}: |
+{{ $content | indent 4 }}
+  {{- end }}
+
+  # Optional: files that should be Helm-templated
+  {{- range $name, $content := (default (dict) .Values.config.tplFiles) }}
   {{ $name }}: |
 {{ tpl $content $ | indent 4 }}
   {{- end }}

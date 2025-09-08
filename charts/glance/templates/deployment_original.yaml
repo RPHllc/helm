@@ -46,24 +46,6 @@ spec:
         {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        # Add volume for user-provided files
-        - name: user-files
-          emptyDir: {}
-      initContainers:
-        {{- if .Values.config.userFiles }}
-        - name: copy-user-files
-          image: alpine:latest
-          command: ['sh', '-c']
-          args:
-            - |
-              # Copy files from host to pod
-              cp /user-files/* /app/config/ 2>/dev/null || true
-          volumeMounts:
-            - name: user-files
-              mountPath: /user-files
-            - name: glance-etc
-              mountPath: /app/config
-        {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           {{- with .Values.securityContext }}

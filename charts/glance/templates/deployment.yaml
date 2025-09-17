@@ -30,6 +30,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "glance.serviceAccountName" . }}
+      {{- if .Values.hostAliases.enabled }}
+      hostAliases:
+        {{- toYaml .Values.hostAliases.entries | nindent 8 }}
+      {{- end }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

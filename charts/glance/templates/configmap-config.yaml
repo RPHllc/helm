@@ -13,7 +13,7 @@ data:
   # Extra config files that should be mounted literally (no Helm templating)
   {{- range $name, $content := (default (dict) .Values.config.files) }}
   {{ $name }}: |
-{{ $content }}
+{{- $content | nindent 4 }}
   {{- end }}
 
   # Optional: files that should be Helm-templated

@@ -1,4 +1,4 @@
-{{- if .Values.assets }}
+{{- if .Values.assets.files }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,8 +6,8 @@ metadata:
   labels:
     {{- include "glance.labels" . | nindent 4 }}
 data:
-  {{- range $name, $content := .Values.assets }}
-  {{ $name }}: |
+  {{- range $name, $content := .Values.assets.files }}
+  {{ $name }}:
 {{ $content | indent 4 }}
   {{- end }}
 {{- end }}

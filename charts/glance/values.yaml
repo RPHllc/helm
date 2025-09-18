@@ -168,7 +168,16 @@ config:
                   - go-gitea/gitea
                   - immich-app/immich
                   - syncthing/syncthing
-    files: {}
-    tplFiles: {}
 
-assets: {}
+  # files allows you to pass arbitrary files into the application's config directory.
+  # The key will be the filename and the value should be the file's content.
+  # This is useful for custom widgets or CSS files.
+  files: {}
+
+  # tplFiles is the same as files, but the content will be processed through
+  # the Helm templating engine before being placed in the ConfigMap.
+  tplFiles: {}
+
+assets:
+  # files allows you to pass arbitrary asset files (e.g. CSS, images) into the application.
+  files: {}

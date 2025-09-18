@@ -6,9 +6,9 @@ This repository contains my personal collection of Helm charts.
 
 The following charts are available in this repository:
 
-| Chart | App Version | Chart Version | Description |
-|---|---|---|---|
-| [glance](#glance) | `v0.8.4` | `0.1.9` | A self-hosted dashboard to browse your Kubernetes cluster. |
+| Chart | App Version | Chart Version | Description                           |
+|-------|-------------|---------------|---------------------------------------|
+| [glance](#glance) | `v0.8.4` | `0.1.19` | A self-hosted dashboard to browse your Kubernetes cluster. |
 
 ---
 

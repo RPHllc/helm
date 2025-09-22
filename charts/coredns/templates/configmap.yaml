@@ -4,7 +4,7 @@ metadata:
   name: coredns-custom
   namespace: kube-system
   labels:
-    {{- include "coredns-custom-config.labels" . | nindent 4 }}
+    {{- include "coredns-custom.labels" . | nindent 4 }}
 data:
   {{- range .Values.customServers }}
   {{ .filename }}: |

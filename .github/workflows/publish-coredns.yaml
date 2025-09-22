@@ -1,0 +1,92 @@
+name: Publish coredns chart
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+    paths:
+      - charts/coredns/**
+
+permissions:
+  contents: write      # for committing docs/*
+  # packages: write      # for pushing OCI chart to ghcr.io
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+
+      - name: Install yq
+        uses: mikefarah/yq@v4.44.3
+
+      - name: Helm lint
+        run: helm lint charts/coredns
+
+      - name: Compute versions
+        id: v
+        run: |
+          APPV="$(yq -r '.appVersion' charts/coredns/Chart.yaml)"
+          CHARTV="$(yq -r '.version' charts/coredns/Chart.yaml)"
+          echo "app=${APPV}"   >> $GITHUB_OUTPUT
+          echo "chart=${CHARTV}" >> $GITHUB_OUTPUT
+
+      - name: Skip if version already in index
+        id: skip
+        run: |
+          VERSION="$(yq -r '.version' charts/coredns/Chart.yaml)"
+          if [ -f docs/coredns/index.yaml ] && grep -q "version: ${VERSION}" docs/coredns/index.yaml; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Package chart
+        if: steps.skip.outputs.exists == 'false'
+        run: |
+          mkdir -p docs/coredns
+          helm dependency update charts/coredns || true
+          helm package charts/coredns -d docs/coredns
+
+      - name: Update Helm repo index (GitHub Pages)
+        run: |
+          URL="https://rphllc.github.io/helm/coredns"
+          if [ -f docs/coredns/index.yaml ]; then
+            helm repo index docs/coredns --url "$URL" --merge docs/coredns/index.yaml
+          else
+            helm repo index docs/coredns --url "$URL"
+          fi
+          touch docs/.nojekyll
+
+      - name: Commit docs to main
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Publish coredns Helm chart ${{ steps.v.outputs.chart }}"
+          branch: main
+          file_pattern: docs/**
+          push_options: '--force-with-lease'
+
+      # --- Optional: also publish to GHCR as an OCI chart
+      # - name: Login to ghcr.io
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ github.token }}
+
+      # - name: Push OCI chart to GHCR
+      #   run: |
+      #     set -euo pipefail
+      #     VERSION="${{ steps.v.outputs.chart }}"
+      #     FILE="coredns-${VERSION}.tgz"
+      #     cd docs/coredns
+      #     # push under ghcr.io/RPHllc/helm/chart
+      #     helm push "${FILE}" "oci://ghcr.io/${{ github.repository }}/chart"

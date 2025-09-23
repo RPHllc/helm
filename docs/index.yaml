@@ -3,7 +3,17 @@ entries:
   coredns-custom-config:
   - apiVersion: v2
     appVersion: 1.11.3
-    created: "2025-09-23T01:53:20.13205427Z"
+    created: "2025-09-23T02:08:03.055306857Z"
+    description: A Helm chart for Kubernetes
+    digest: 5369e9e541286b606a51d859c2778605390fb42a1558131abc92d0260785b063
+    name: coredns-custom-config
+    type: application
+    urls:
+    - https://rphllc.github.io/helm/coredns-custom-config-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.11.3
+    created: "2025-09-23T02:08:03.055137599Z"
     description: A Helm chart for Kubernetes
     digest: 71c7e6cfd9d8ce90c290c6dd8adddb77c4d766e4410a13aae890f1ee12a2ddb5
     name: coredns-custom-config
@@ -14,9 +24,9 @@ entries:
   glance:
   - apiVersion: v2
     appVersion: v0.8.4
-    created: "2025-09-23T01:53:20.134104759Z"
+    created: "2025-09-23T02:08:03.058222997Z"
     description: A Helm chart for Kubernetes
-    digest: 360540520005ab23b8df727c5197712913451be8ca79e662b03ab3bcbe1410e4
+    digest: 010480fad9b0a08a59675c3a3f33b8269bfc8d8c6879b361daee3a1db6cccd84
     maintainers:
     - name: Romulo Pontual
     name: glance
@@ -28,7 +38,7 @@ entries:
     version: 0.1.21
   - apiVersion: v2
     appVersion: v0.8.4
-    created: "2025-09-23T01:53:20.133597287Z"
+    created: "2025-09-23T02:08:03.057697109Z"
     description: A Helm chart for Kubernetes
     digest: c54c2f91e393a7f227c85b1a88448ce9979a7ae6839211cfe9dc21fa420e469b
     maintainers:
@@ -42,7 +52,7 @@ entries:
     version: 0.1.20
   - apiVersion: v2
     appVersion: v0.8.4
-    created: "2025-09-23T01:53:20.133040532Z"
+    created: "2025-09-23T02:08:03.057105768Z"
     description: A Helm chart for Kubernetes
     digest: 4862cf5604d9ec7970e2fdffcbe5a877c94dc7ac725af2983057433c488a2496
     name: glance
@@ -54,7 +64,7 @@ entries:
     version: 0.1.19
   - apiVersion: v2
     appVersion: v0.8.4
-    created: "2025-09-23T01:53:20.132558607Z"
+    created: "2025-09-23T02:08:03.055767453Z"
     description: A Helm chart for Kubernetes
     digest: 8f85dd46dcafeea80fbce79f10d10e94a032ebd3a4cb72652af88b79f3324f93
     name: glance
@@ -64,4 +74,4 @@ entries:
     urls:
     - https://rphllc.github.io/helm/glance-0.1.18.tgz
     version: 0.1.18
-generated: "2025-09-23T01:53:20.131732847Z"
+generated: "2025-09-23T02:08:03.054809082Z"

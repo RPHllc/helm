@@ -1,15 +1,14 @@
-name: Publish glance chart
+name: Publish Helm charts (unified index)
 
 on:
   workflow_dispatch: {}
   push:
     branches: [ main ]
     paths:
-      - charts/glance/**
+      - charts/**
 
 permissions:
-  contents: write      # for committing docs/*
-  # packages: write      # for pushing OCI chart to ghcr.io
+  contents: write
 
 jobs:
   publish:
@@ -28,65 +27,64 @@ jobs:
       - name: Install yq
         uses: mikefarah/yq@v4.44.3
 
-      - name: Helm lint
-        run: helm lint charts/glance
-
-      - name: Compute versions
-        id: v
+      # Optional: normalize legacy layout (one-time safe to keep)
+      - name: Move old packaged charts from subfolders into docs/
         run: |
-          APPV="$(yq -r '.appVersion' charts/glance/Chart.yaml)"
-          CHARTV="$(yq -r '.version' charts/glance/Chart.yaml)"
-          echo "app=${APPV}"   >> $GITHUB_OUTPUT
-          echo "chart=${CHARTV}" >> $GITHUB_OUTPUT
+          mkdir -p docs
+          shopt -s nullglob
+          for f in docs/*/*.tgz; do
+            mv -n "$f" docs/
+          done
+          # Remove per-chart index files if present; they confuse Helm users
+          rm -f docs/*/index.yaml
 
-      - name: Skip if version already in index
-        id: skip
+      # Lint & package every chart under charts/* into docs/
+      - name: Lint and package charts
         run: |
-          VERSION="$(yq -r '.version' charts/glance/Chart.yaml)"
-          if [ -f docs/glance/index.yaml ] && grep -q "version: ${VERSION}" docs/glance/index.yaml; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          mkdir -p docs
+          shopt -s nullglob
+          charts=(charts/*)
+          if [ ${#charts[@]} -eq 0 ]; then
+            echo "No charts found under charts/"; exit 0
           fi
 
-      - name: Package chart
-        if: steps.skip.outputs.exists == 'false'
-        run: |
-          mkdir -p docs/glance
-          helm dependency update charts/glance || true
-          helm package charts/glance -d docs/glance
+          for chartdir in "${charts[@]}"; do
+            [ -d "$chartdir" ] || continue
+            echo "::group::Processing $chartdir"
+            helm lint "$chartdir"
 
-      - name: Update Helm repo index (GitHub Pages)
+            # Read chart name/version
+            NAME="$(yq -r '.name' "$chartdir/Chart.yaml")"
+            VERSION="$(yq -r '.version' "$chartdir/Chart.yaml")"
+
+            # Skip packaging if same version is already in unified docs/index.yaml
+            if [ -f docs/index.yaml ] && grep -q "name: $NAME" docs/index.yaml && grep -q "version: $VERSION" docs/index.yaml; then
+              echo "Skip: $NAME $VERSION already in docs/index.yaml"
+            else
+              echo "Packaging $NAME $VERSION"
+              helm dependency update "$chartdir" || true
+              helm package "$chartdir" -d docs
+            fi
+            echo "::endgroup::"
+          done
+
+      # Rebuild ONE unified index at docs/index.yaml
+      - name: Update unified Helm repo index (GitHub Pages)
         run: |
-          URL="https://rphllc.github.io/helm/glance"
-          if [ -f docs/glance/index.yaml ]; then
-            helm repo index docs/glance --url "$URL" --merge docs/glance/index.yaml
+          set -euo pipefail
+          URL="https://rphllc.github.io/helm"
+          if [ -f docs/index.yaml ]; then
+            helm repo index docs --url "$URL" --merge docs/index.yaml
           else
-            helm repo index docs/glance --url "$URL"
+            helm repo index docs --url "$URL"
           fi
           touch docs/.nojekyll
 
       - name: Commit docs to main
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Publish glance Helm chart ${{ steps.v.outputs.chart }}"
+          commit_message: "Publish Helm charts (unified index)"
           branch: main
           file_pattern: docs/**
           push_options: '--force-with-lease'
-
-      # --- Optional: also publish to GHCR as an OCI chart
-      # - name: Login to ghcr.io
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.actor }}
-      #     password: ${{ github.token }}
-
-      # - name: Push OCI chart to GHCR
-      #   run: |
-      #     set -euo pipefail
-      #     VERSION="${{ steps.v.outputs.chart }}"
-      #     FILE="glance-${VERSION}.tgz"
-      #     cd docs/glance
-      #     # push under ghcr.io/RPHllc/helm/chart
-      #     helm push "${FILE}" "oci://ghcr.io/${{ github.repository }}/chart"

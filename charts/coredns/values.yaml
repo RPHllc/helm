@@ -3,19 +3,19 @@
 # Declare variables to be passed into your templates.
 
 customServers:
-  - filename: "casarp.server"
+  - filename: "myhome.server"
     content: |
-      casarp.us:53 {
+      myhome.us:53 {
           errors
           cache 30
-          rewrite name regex (.*)\.casarp\.us casarp.us
+          rewrite name regex (.*)\.myhome\.us myhome.us
           forward . 10.0.154.1
       }
-  - filename: "casavp.server"
+  - filename: "localexample.server"
     content: |
-      casavp.com:53 {
+      localexample.com:53 {
           errors
           cache 30
-          rewrite name regex (.*)\.casavp\.com casavp.com
+          rewrite name regex (.*)\.localexample\.com localexample.com
           forward . 10.0.153.1
       }
